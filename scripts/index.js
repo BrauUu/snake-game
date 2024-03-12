@@ -1,34 +1,5 @@
-class Snake {
-    constructor(xpoint, ypoint, viewDirection, color) {
-        this.axisX = xpoint
-        this.axisY = ypoint
-        this.viewDirection = viewDirection
-        this.color = color 
-        this.tailPositions = []
-        this.points = 0
-    }
-
-    updatePosition(x, y) {
-        this.axisX = x
-        this.axisY = y
-    }
-
-    updateViewDirection(viewDirection) {
-        this.viewDirection = viewDirection
-    }
-
-}
-class Fruit {
-    constructor(xpoint, ypoint) {
-        this.axisX = xpoint
-        this.axisY = ypoint
-    }
-
-    definePosition(x, y) {
-        this.axisX = x
-        this.axisY = y
-    }
-}
+import Fruit from "./classes/Fruit.js"
+import Snake from "./classes/Snake.js"
 
 let snake = new Snake(0, 0, "Right", "#00FF00")
 let fruit
@@ -41,12 +12,10 @@ window.addEventListener('load', () => {
     renderGame()
 })
 
-
 window.addEventListener('keydown', (event) => {
     
     if (eventOnProgress) {
         event.preventDefault()
-        console.log('evento em progresso')
         return
     }
     
@@ -119,11 +88,9 @@ function goStraight() {
     const { axisX, axisY} = Moves[snake.viewDirection]
 
     handleMovement(axisX, axisY)
-
-    eventOnProgress = false
 }
 
-function handleMovement(x, y) {
+function handleMovement(x, y, ) {
 
     let { axisX, axisY, color, tailPositions } = snake
     let tempAxisX = axisX + x * 20
@@ -139,10 +106,12 @@ function handleMovement(x, y) {
 
     drawRectangle(blank[0], blank[1], "#eff0f1")
     drawRectangle(tempAxisX, tempAxisY, color)
-
-    for (block of tailPositions) {
+    for (let block of tailPositions) {
         drawRectangle(block[0], block[1], color)
     }
+
+    eventOnProgress = false
+
 }
 
 function handleCollision() {
@@ -226,7 +195,7 @@ function hasColidedWithFruit(axisX, axisY) {
 }
 
 function hasColidedWithTail(axisX, axisY, tailPositions) {
-    for (square of tailPositions) {
+    for (let square of tailPositions) {
         if (square[0] === axisX && square[1] === axisY) {
             return true
         }
@@ -285,7 +254,6 @@ function generateFruit() {
     axisY = Math.random() * (maxY - 0)
     axisY = axisY - (axisY % 20)
 
-    console.log(axisX, axisY)
 
     drawRectangle(axisX, axisY, color)
     fruit = new Fruit(axisX, axisY, color)
@@ -302,6 +270,5 @@ function drawRectangle(axisX, axisY, color) {
 }
 
 function changeMousePointer(pointer) {
-    console.log(pointer)
     document.body.style.cursor = pointer
 }
