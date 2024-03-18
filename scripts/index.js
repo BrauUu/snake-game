@@ -1,174 +1,147 @@
 import Fruit from "./classes/Fruit.js"
 import Snake from "./classes/Snake.js"
 
-let snake = new Snake(0, 0, "Right", "#00FF00")
-let fruit
+const size = 30
+let gameOver = false
+
+const canvas = document.querySelector("#canvas");
+const ctx = canvas.getContext("2d");
+
+const tryAgainButton = document.querySelector("#try-again-button");
+const gameOverScreen = document.querySelector("#gameover");
+const finalScoreElement = document.querySelector("#final-score-value");
+
+const scoreElement = document.querySelector("#score-value");
+
+const Moves = {
+    'Up': { moveX: 0, moveY: -1 },
+    'Right': { moveX: 1, moveY: 0 },
+    'Down': { moveX: 0, moveY: 1 },
+    'Left': { moveX: -1, moveY: 0 },
+}
+
+const Walls = {
+    'axisX' : {
+        'min': 0,
+        'max': canvas.width
+    },
+    'axisY' : {
+        'min': 0,
+        'max': canvas.height
+    }
+}
 
 let eventOnProgress = false
+let intervalId
 
-let intervalID = window.setInterval(goStraight, 150)
+const moveAudio = new Audio('/assets/audios/move.mp3');
+const eatAudio = new Audio('/assets/audios/food.mp3');
+const gameOverAudio = new Audio('/assets/audios/gameover.mp3');
 
-window.addEventListener('load', () => {
-    renderGame()
-})
+let snake
+let fruit
+
+loopGame()
+
+function loopGame() {
+    snake = generateSnake()
+    fruit = generateFruit()
+    intervalId = setInterval(() => {
+        move()
+        if(isGameOver()) {
+            playGameOverAudio()
+            return
+        }
+        cleanCanvas()
+        drawGrid()
+        drawSnake()
+        drawFruit()
+    }, 150)
+}
 
 window.addEventListener('keydown', (event) => {
     
-    if (eventOnProgress) {
-        event.preventDefault()
-        return
+    if (!eventOnProgress && gameOver === false) {
+        eventOnProgress = true
+        const key = event.key
+        playMoveAudio()
+        handleKeyPressed(key)
+        eventOnProgress = false
     }
-    
-    eventOnProgress = true
-    
-    const key = event.key
-    handleKeyPressed(key)
+
+    event.preventDefault()
 })
 
-const canvas = document.querySelector("#canvas");
-
-canvas.addEventListener('click', (event) => {
-    const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-    if(isRefreshButtonPosition(x, y))
-        refreshGame()
+tryAgainButton.addEventListener('click', (event) => {
+    gameOver = false
+    gameOverScreen.style.display = 'none'
+    scoreElement.textContent = "000"
+    loopGame()
 })
 
-canvas.addEventListener('mousemove', (event) => {
-    const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-    if(isRefreshButtonPosition(x, y)){
-        changeMousePointer('pointer')
-    } else {
-        changeMousePointer('default')
-    }
-})
+function move() {
 
-function renderGame() {
+    const viewDirection = snake.viewDirection
+    const { moveX, moveY} = Moves[viewDirection]
 
-    let { axisX, axisY, color } = snake
-
-    drawRectangle(axisX, axisY, color)
-    generateFruit()
+    handleMovement( moveX, moveY)
 }
 
-function isRefreshButtonPosition(x, y){
+function handleMovement(moveX, moveY) {
 
-    const buttonXmin = canvas.width/2 - 15
-    const buttonXmax = canvas.width/2 + 15
-    const buttonYmin = canvas.height/2 + 10
-    const buttonYmax = canvas.height/2 + 40
+    const { axisX, axisY, tailPositions } = snake
 
-    if(x >= buttonXmin && x <= buttonXmax) {
-        if(y >= buttonYmin && y <= buttonYmax){
-            return true
-        }
-    }
-    return false
-}
-
-function refreshGame() {
-    snake = new Snake(0, 0, "Right", "#00FF00")
-    intervalID = window.setInterval(goStraight, 150)
-    cleanCanvas()
-    renderGame()
-}
-
-function goStraight() {
-
-    const Moves = {
-        'Up': { axisX: 0, axisY: -1 },
-        'Right': { axisX: 1, axisY: 0 },
-        'Down': { axisX: 0, axisY: 1 },
-        'Left': { axisX: -1, axisY: 0 },
-    }
-
-    const { axisX, axisY} = Moves[snake.viewDirection]
-
-    handleMovement(axisX, axisY)
-}
-
-function handleMovement(x, y, ) {
-
-    let { axisX, axisY, color, tailPositions } = snake
-    let tempAxisX = axisX + x * 20
-    let tempAxisY = axisY + y * 20
+    const newAxisX = axisX + (moveX * size)
+    const newAxisY = axisY + (moveY * size)
     
-    snake.updatePosition(tempAxisX, tempAxisY)
-    if(handleCollision()){
-        return
-    }
+    snake.updatePosition(newAxisX, newAxisY)
     
+    handleCollision()
+
     tailPositions.unshift([axisX, axisY])
-    const blank = tailPositions.pop()
-
-    drawRectangle(blank[0], blank[1], "#eff0f1")
-    drawRectangle(tempAxisX, tempAxisY, color)
-    for (let block of tailPositions) {
-        drawRectangle(block[0], block[1], color)
-    }
-
-    eventOnProgress = false
+    tailPositions.pop() 
 
 }
 
 function handleCollision() {
 
-    let { axisX, axisY, tailPositions } = snake
+    const { axisX, axisY, tailPositions } = snake
 
     if (hasColidedWithTail(axisX, axisY, tailPositions)) {
-        return gameOver()
+        handleGameOver()
+    }
+    else if(hasColidedWithWalls(axisX, axisY)){
+        handleGameOver()
     }
     else if(hasColidedWithFruit(axisX, axisY)){  
         snake.points += 1
         hasGotFruit()
-        generateFruit()
-    }
-    else if(hasColidedWithWalls(axisX, axisY)){
-        return gameOver()
+        fruit = generateFruit()
     }
 
-    return false
 }
 
-function gameOver(){
-    if (canvas.getContext) {
-        let ctx = canvas.getContext("2d");
-        ctx.font = "30px Comic Sans MS";
-        ctx.fillStyle = "red";
-        ctx.textAlign = "center";
-        ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2); 
-        let img = new Image();
-        img.onload = function () {
-            ctx.drawImage(img, canvas.width/2 - 15, canvas.height/2 + 10, 30, 30);
-        };
-        img.src = "assets/recarregar.png";
-    }
+function isGameOver() {
+    return gameOver
+}
 
-    window.clearInterval(intervalID)
-    return true
+function handleGameOver(){
+
+    const score = snake.score
+
+    clearInterval(intervalId)
+    gameOverScreen.style.display = 'flex'
+    finalScoreElement.textContent = score < 100 ? "00" + score : score
+    gameOver = true 
+
 }
 
 function cleanCanvas(){
-    if (canvas.getContext) {
-        let ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function hasColidedWithWalls(axisX, axisY){
-    const Walls = {
-        'axisX' : {
-            'min': 0,
-            'max': 400
-        },
-        'axisY' : {
-            'min': 0,
-            'max': 300
-        }
-    }
+   
     if(axisX < Walls.axisX.min || axisX >= Walls.axisX.max || axisY < Walls.axisY.min || axisY >= Walls.axisY.max){
         return true
     }
@@ -177,6 +150,8 @@ function hasColidedWithWalls(axisX, axisY){
 }
 
 function hasGotFruit(){
+    playEatAudio()
+    updateScoreValue()
     snake.tailPositions.push([])
 }
 
@@ -186,7 +161,6 @@ function hasColidedWithFruit(axisX, axisY) {
     const fruitAxisY = fruit.axisY
 
     if (fruitAxisX === axisX && fruitAxisY === axisY) {
-        
         return true
     }
 
@@ -195,8 +169,8 @@ function hasColidedWithFruit(axisX, axisY) {
 }
 
 function hasColidedWithTail(axisX, axisY, tailPositions) {
-    for (let square of tailPositions) {
-        if (square[0] === axisX && square[1] === axisY) {
+    for (let position of tailPositions) {
+        if (position[0] === axisX && position[1] === axisY) {
             return true
         }
     }
@@ -206,7 +180,7 @@ function hasColidedWithTail(axisX, axisY, tailPositions) {
 
 function handleKeyPressed(key) {
 
-    const { viewDirection } = snake
+    const viewDirection = snake.viewDirection
 
     const Keys = {
         ArrowUp() {
@@ -240,35 +214,111 @@ function handleKeyPressed(key) {
 }
 
 function generateFruit() {
+
+    const maxX = canvas.width - size
+    const maxY = canvas.height - size
+
+    const tailPositions = snake.tailPositions
+
+    let axisX
+    let axisY
     
     const color = "#FF00FF"
+    
+    axisX = parseInt((Math.random() * (maxX - 0)) / size) * size
+    axisY =  parseInt((Math.random() * (maxY - 0)) / size) * size
 
-    const maxX = 380
-    const maxY = 280
-    let axisX
-    let axisY 
+    do {
+        axisX = parseInt((Math.random() * (maxX - 0)) / size) * size
+        axisY =  parseInt((Math.random() * (maxY - 0)) / size) * size
+    } while (tailPositions.findIndex((value, index, arr) => (value[0] === axisX && value[1] === axisY)) != -1 || (snake.axisX === axisX && snake.axisY === axisY));
 
-    axisX = Math.random() * (maxX - 0)
-    axisX = axisX - (axisX % 20)
+    return new Fruit(axisX, axisY, color)
 
-    axisY = Math.random() * (maxY - 0)
-    axisY = axisY - (axisY % 20)
-
-
-    drawRectangle(axisX, axisY, color)
-    fruit = new Fruit(axisX, axisY, color)
 }
 
-function drawRectangle(axisX, axisY, color) {
-    if (canvas.getContext) {
-        let ctx = canvas.getContext("2d");
-        let obj = new Path2D();
-        obj.rect(axisX, axisY, 20, 20);
-        ctx.fillStyle = color
-        ctx.fill(obj);
+function generateSnake() {
+
+    const color = "#00FF00"
+    const axisX = 0
+    const axisY = 0
+    const viewDirection = "Right"
+
+    return new Snake(axisX, axisY, viewDirection, color)
+
+}
+
+function drawRectangle(axisX, axisY, color, shadowBlur) {
+   
+    ctx.shadowColor = color
+    ctx.shadowBlur = shadowBlur
+    ctx.fillStyle = color
+    ctx.fillRect(axisX, axisY, size, size);
+    ctx.shadowBlur = 0
+}
+
+function drawGrid() {
+    ctx.strokeStyle = "#313131"
+    ctx.lineWidth = 1
+    ctx.lineCap = "round"
+    ctx.setLineDash([2, 6]);
+    ctx.lineDashOffset = 100;
+    for(let i = size-1;i<canvas.width-1;i+=size){
+        ctx.beginPath()
+        ctx.lineTo(i, 0)
+        ctx.lineTo(i, canvas.height)
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.lineTo(0, i)
+        ctx.lineTo(canvas.height, i)
+        ctx.stroke()
     }
 }
 
-function changeMousePointer(pointer) {
-    document.body.style.cursor = pointer
+function drawSnake() {
+
+    const {
+        color, 
+        axisX, 
+        axisY, 
+        tailPositions
+    } = snake
+
+    drawRectangle(axisX, axisY, color)
+
+    tailPositions.forEach((position, index) => {
+        drawRectangle(position[0], position[1], color)
+    })
+
+}
+
+function drawFruit() {
+
+    const {
+        axisX, 
+        axisY, 
+        color
+    } = fruit
+
+    drawRectangle(axisX, axisY, color, 10)
+
+}
+
+function updateScoreValue(){
+    snake.updateScore()
+    const score = snake.score
+    scoreElement.textContent = score < 100 ? "00" + score : score
+}
+
+function playMoveAudio(){
+    moveAudio.play()
+}
+
+function playEatAudio(){
+    eatAudio.play()
+}
+
+function playGameOverAudio(){
+    gameOverAudio.play()
 }

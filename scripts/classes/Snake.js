@@ -5,7 +5,7 @@ export default class Snake {
         this.viewDirection = viewDirection
         this.color = color 
         this.tailPositions = []
-        this.points = 0
+        this.score = 0
     }
 
     updatePosition(x, y) {
@@ -15,6 +15,10 @@ export default class Snake {
 
     updateViewDirection(viewDirection) {
         this.viewDirection = viewDirection
+    }
+
+    updateScore() {
+        this.score += 1
     }
 
 }
