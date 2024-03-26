@@ -42,10 +42,10 @@ const maxScore = (canvas.width / size * canvas.height / size) * pointValue - poi
 let eventOnProgress = false
 let intervalId
 
-const moveAudio = new Audio('/assets/audios/move.mp3');
-const eatAudio = new Audio('/assets/audios/food.mp3');
-const gameOverAudio = new Audio('/assets/audios/gameover.mp3');
-const gameWinAudio = new Audio('/assets/audios/gamewin.mp3')
+const moveAudio = new Audio('./assets/audios/move.mp3');
+const eatAudio = new Audio('./assets/audios/food.mp3');
+const gameOverAudio = new Audio('./assets/audios/gameover.mp3');
+const gameWinAudio = new Audio('./assets/audios/gamewin.mp3')
 
 let snake
 let fruit
