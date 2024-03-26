@@ -3,6 +3,7 @@ import Snake from "./classes/Snake.js"
 
 const size = 30
 let gameOver = false
+let tempViewDirection
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
@@ -47,6 +48,7 @@ function loopGame() {
     snake = generateSnake()
     fruit = generateFruit()
     intervalId = setInterval(() => {
+        updateViewDirection(tempViewDirection)
         move()
         if(isGameOver()) {
             playGameOverAudio()
@@ -64,17 +66,17 @@ window.addEventListener('keydown', (event) => {
     if (!eventOnProgress && gameOver === false) {
         eventOnProgress = true
         const key = event.key
-        playMoveAudio()
         handleKeyPressed(key)
-        eventOnProgress = false
     }
-
+    
+    eventOnProgress = false
     event.preventDefault()
 })
 
 tryAgainButton.addEventListener('click', (event) => {
     gameOver = false
     gameOverScreen.style.display = 'none'
+    canvas.style.filter = "none"
     scoreElement.textContent = "000"
     loopGame()
 })
@@ -96,11 +98,12 @@ function handleMovement(moveX, moveY) {
     
     snake.updatePosition(newAxisX, newAxisY)
     
-    handleCollision()
-
     tailPositions.unshift([axisX, axisY])
-    tailPositions.pop() 
-
+    
+    handleCollision()
+    
+    tailPositions.pop()
+    
 }
 
 function handleCollision() {
@@ -131,7 +134,8 @@ function handleGameOver(){
 
     clearInterval(intervalId)
     gameOverScreen.style.display = 'flex'
-    finalScoreElement.textContent = score < 100 ? "00" + score : score
+    canvas.style.filter = "blur(2px)"
+    finalScoreElement.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
     gameOver = true 
 
 }
@@ -180,28 +184,18 @@ function hasColidedWithTail(axisX, axisY, tailPositions) {
 
 function handleKeyPressed(key) {
 
-    const viewDirection = snake.viewDirection
-
     const Keys = {
         ArrowUp() {
-            if ((viewDirection != 'Down' && viewDirection != 'Up')) {
-                snake.updateViewDirection("Up")
-            }
+            tempViewDirection = "Up"
         },
         ArrowRight() {
-            if ((viewDirection != 'Left' && viewDirection != 'Right')) {
-                snake.updateViewDirection("Right")
-            }
+            tempViewDirection = "Right"
         },
         ArrowDown() {
-            if ((viewDirection != 'Up' && viewDirection != 'Down')) {
-                snake.updateViewDirection("Down")
-            }
+            tempViewDirection = "Down"
         },
         ArrowLeft() {
-            if ((viewDirection != 'Right' && viewDirection != 'Left')) {
-                snake.updateViewDirection("Left")
-            }
+            tempViewDirection = "Left"
         }
     }
 
@@ -213,10 +207,25 @@ function handleKeyPressed(key) {
 
 }
 
+function updateViewDirection(direction) {
+    const viewDirection = snake.viewDirection
+    const opositeDirections = {
+        "Up" : "Down",
+        "Down" : "Up",
+        "Left" : "Right",
+        "Right": "Left"
+    }
+    if(direction != undefined && direction != viewDirection && opositeDirections[viewDirection] != direction){
+        playMoveAudio()
+        snake.updateViewDirection(direction)
+    }
+    tempViewDirection = undefined
+}
+
 function generateFruit() {
 
-    const maxX = canvas.width - size
-    const maxY = canvas.height - size
+    const maxX = canvas.width
+    const maxY = canvas.height
 
     const tailPositions = snake.tailPositions
 
@@ -231,7 +240,7 @@ function generateFruit() {
     do {
         axisX = parseInt((Math.random() * (maxX - 0)) / size) * size
         axisY =  parseInt((Math.random() * (maxY - 0)) / size) * size
-    } while (tailPositions.findIndex((value, index, arr) => (value[0] === axisX && value[1] === axisY)) != -1 || (snake.axisX === axisX && snake.axisY === axisY));
+    } while (tailPositions.findIndex(value => ((value[0] === axisX && value[1] === axisY) || (value[1] === axisX && value[0] === axisY))) != -1 || (snake.axisX === axisX && snake.axisY === axisY));
 
     return new Fruit(axisX, axisY, color)
 
@@ -308,7 +317,7 @@ function drawFruit() {
 function updateScoreValue(){
     snake.updateScore()
     const score = snake.score
-    scoreElement.textContent = score < 100 ? "00" + score : score
+    scoreElement.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
 }
 
 function playMoveAudio(){
