@@ -17,8 +17,8 @@ export default class Snake {
         this.viewDirection = viewDirection
     }
 
-    updateScore() {
-        this.score += 1
+    updateScore(pointValue) {
+        this.score += pointValue
     }
 
 }

@@ -4,7 +4,7 @@
 * {
     margin: 0;
     font-family: 'Poppins';
-    color: #ebebeb;
+    color: #FFD700;
 }
 
 body {
@@ -36,7 +36,7 @@ body {
     font-weight: 700;
 }
 
-.gameover {
+.menu {
     font-size: 2rem;
     position: absolute;
     display: none;
@@ -53,7 +53,7 @@ body {
     margin-top: -20px;
 }
 
-.try-again-button {
+.play-button {
     font-size: 1rem;
     color: #1d1d1d;
     padding: 10px 50px;
@@ -61,6 +61,6 @@ body {
     border: none;
 }
 
-.try-again-button:hover {
+.play-button:hover {
     cursor: pointer;
 }
