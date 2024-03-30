@@ -53,6 +53,14 @@ body {
     margin-top: -20px;
 }
 
+#gameover > h1{
+    color: #ff0000;
+}
+
+#game-over-score {
+    color: #fff;
+}
+
 .play-button {
     font-size: 1rem;
     color: #1d1d1d;

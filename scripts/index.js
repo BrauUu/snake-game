@@ -3,8 +3,12 @@ import Snake from "./classes/Snake.js"
 
 const size = 30
 const pointValue = 10
+const defaultTime = 300
+
 let gameOver = false
 let tempViewDirection
+let currentTime = defaultTime
+let checkpoint = 50
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
@@ -55,6 +59,10 @@ loopGame()
 function loopGame() {
     snake = generateSnake()
     fruit = generateFruit()
+    createInterval()
+}
+
+function createInterval(){
     intervalId = setInterval(() => {
         updateViewDirection(tempViewDirection)
         move()
@@ -70,7 +78,7 @@ function loopGame() {
             return
         }
         drawFruit()
-    }, 150)
+    }, currentTime)
 }
 
 window.addEventListener('keydown', (event) => {
@@ -87,13 +95,7 @@ window.addEventListener('keydown', (event) => {
 
 tryAgainButtons.forEach((tryAgainButton) => {
     tryAgainButton.addEventListener('click', () => {
-        gameOver = false
-        gameWinScreen.style.display = 'none'
-        gameOverScreen.style.display = 'none'
-        canvas.style.filter = "none"
-        divScoreElement.style.filter = "none"
-        scoreElement.textContent = "000"
-        loopGame()
+        restartGame()
     })
 })
 
@@ -139,6 +141,15 @@ function handleCollision() {
 
 }
 
+function handleSpeed(){
+    const score = snake.score
+    if(currentTime > 90 && score >= checkpoint){
+        currentTime = currentTime - 30
+        clearInterval(intervalId)
+        createInterval()
+        checkpoint += checkpoint/2
+    }
+}
 
 function hasGameWin() {
     return snake.score >= maxScore
@@ -175,6 +186,17 @@ function handleGameOver() {
 
 }
 
+function restartGame(){
+    gameOver = false
+    currentTime = defaultTime
+    gameWinScreen.style.display = 'none'
+    gameOverScreen.style.display = 'none'
+    canvas.style.filter = "none"
+    divScoreElement.style.filter = "none"
+    scoreElement.textContent = "000"
+    loopGame()
+}
+
 function cleanCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -191,6 +213,7 @@ function hasColidedWithWalls(axisX, axisY) {
 function hasGotFruit() {
     playEatAudio()
     updateScoreValue()
+    handleSpeed()
     snake.tailPositions.push([])
 }
 
