@@ -1,16 +1,15 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
 * {
     margin: 0;
-    font-family: 'Poppins';
-    color: #FFD700;
+    color: #EEE;
+    font-family: "Press Start 2P", system-ui;
+    text-shadow: 4px 4px #222;
 }
 
 body {
     height: 100vh;
     background-color: #1d1d1d;
 }
+
 .container {
     display: flex;
     flex-direction: column;
@@ -19,20 +18,23 @@ body {
 
     height: 100%;
 }
+
 #canvas {
     background-color: #292929;
 }
 .score {
+
     font-size: 1.6rem;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     
-    height: 90px;
+    margin-bottom: 10px;
 }
 
 .score-value {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
@@ -44,31 +46,26 @@ body {
     justify-content: center;
     flex-direction: column;
     
-    margin-top: 90px;
+    margin-top: 80px;
 }
 
-#final-score-value {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-top: -20px;
-}
-
-#gameover > h1{
-    color: #ff0000;
+.instructions {
+    font-size: 1.5rem;
 }
 
 #game-over-score {
-    color: #fff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 10px
 }
 
-.play-button {
-    font-size: 1rem;
-    color: #1d1d1d;
-    padding: 10px 50px;
-    border-radius: 5px;
-    border: none;
+#scoreboard > #list {
+    list-style: none;
+    margin: 15px 0 50px;
 }
-
-.play-button:hover {
-    cursor: pointer;
+#scoreboard > #list > .row{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 50px
 }

@@ -3,22 +3,43 @@ import Snake from "./classes/Snake.js"
 
 const size = 30
 const pointValue = 10
-const defaultTime = 300
+const defaultClock = 200
+
+let topScores = [
+    {
+        'player': 'BRY',
+        'score': 1000
+    },
+    {
+        'player': 'AMD',
+        'score': 120
+    },
+    {
+        'player': 'LCS',
+        'score': 0
+    }
+]
+
 
 let gameOver = false
+let scoreboard = false
+let scoreboardPosition
 let tempViewDirection
-let currentTime = defaultTime
+let currentClock = defaultClock
 let checkpoint = 50
+let characterIndex = 0
+let topScoresCopy
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
-const tryAgainButtons = document.querySelectorAll(".play-button");
 const gameOverScreen = document.querySelector("#gameover");
-const gameWinScreen = document.querySelector("#gamewin");
+const scoreboardScreen = document.querySelector("#scoreboard");
+const topScoresElement = document.querySelector("#scoreboard > #list");
+// const gameWinScreen = document.querySelector("#gamewin");
 
 const gameOverScore = document.querySelector("#game-over-score");
-const gameWinScore = document.querySelector("#game-win-score");
+// const gameWinScore = document.querySelector("#game-win-score");
 
 const scoreElement = document.querySelector("#score-value");
 const divScoreElement = document.querySelector(".score");
@@ -29,6 +50,8 @@ const Moves = {
     'Down': { moveX: 0, moveY: 1 },
     'Left': { moveX: -1, moveY: 0 },
 }
+
+const validKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 const Walls = {
     'axisX': {
@@ -41,7 +64,7 @@ const Walls = {
     }
 }
 
-const maxScore = (canvas.width / size * canvas.height / size) * pointValue - pointValue
+// const maxScore = (canvas.width / size * canvas.height / size) * pointValue - pointValue
 
 let eventOnProgress = false
 let intervalId
@@ -49,12 +72,20 @@ let intervalId
 const moveAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/move.mp3");
 const eatAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/food.mp3");
 const gameOverAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/gameover.mp3");
-const gameWinAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/gamewin.mp3");
+// const gameWinAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/gamewin.mp3");
 
 let snake
 let fruit
 
 loopGame()
+
+function setLocalStorage(key, valeu) {
+    localStorage.setItem(key, JSON.stringify(valeu))
+}
+
+function getLocalStorage(key) {
+    return JSON.parse(localStorage.getItem(key))
+}
 
 function loopGame() {
     snake = generateSnake()
@@ -62,7 +93,11 @@ function loopGame() {
     createInterval()
 }
 
-function createInterval(){
+function createInterval() {
+    cleanCanvas()
+    drawGrid()
+    drawSnake()
+    drawFruit()
     intervalId = setInterval(() => {
         updateViewDirection(tempViewDirection)
         move()
@@ -73,17 +108,17 @@ function createInterval(){
         cleanCanvas()
         drawGrid()
         drawSnake()
-        if (hasGameWin()) {
-            handleGameWin()
-            return
-        }
+        // if (hasGameWin()) {
+        //     handleGameWin()
+        //     return
+        // }
         drawFruit()
-    }, currentTime)
+    }, currentClock)
 }
 
 window.addEventListener('keydown', (event) => {
 
-    if (!eventOnProgress && gameOver === false) {
+    if (!eventOnProgress) {
         eventOnProgress = true
         const key = event.key
         handleKeyPressed(key)
@@ -91,12 +126,6 @@ window.addEventListener('keydown', (event) => {
 
     eventOnProgress = false
     event.preventDefault()
-})
-
-tryAgainButtons.forEach((tryAgainButton) => {
-    tryAgainButton.addEventListener('click', () => {
-        restartGame()
-    })
 })
 
 function move() {
@@ -141,32 +170,32 @@ function handleCollision() {
 
 }
 
-function handleSpeed(){
+function handleSpeed() {
     const score = snake.score
-    if(currentTime > 90 && score >= checkpoint){
-        currentTime = currentTime - 30
+    if (currentClock > 90 && score >= checkpoint) {
+        currentClock = currentClock - 30
         clearInterval(intervalId)
         createInterval()
-        checkpoint += checkpoint/2
+        checkpoint += checkpoint / 2
     }
 }
 
-function hasGameWin() {
-    return snake.score >= maxScore
-}
+// function hasGameWin() {
+//     return snake.score >= maxScore
+// }
 
-function handleGameWin() {
+// function handleGameWin() {
 
-    const score = snake.score
+//     const score = snake.score
 
-    gameWinScreen.style.display = 'flex'
-    canvas.style.filter = "blur(2px)"
-    divScoreElement.style.filter = "blur(2px)"
-    gameWinScore.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
+//     gameWinScreen.style.display = 'flex'
+//     canvas.style.filter = "blur(2px)"
+//     divScoreElement.style.filter = "blur(2px)"
+//     gameWinScore.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
 
-    clearInterval(intervalId)
-    playGameWinAudio()
-}
+//     clearInterval(intervalId)
+//     playGameWinAudio()
+// }
 
 function hasGameOver() {
     return gameOver
@@ -186,11 +215,25 @@ function handleGameOver() {
 
 }
 
-function restartGame(){
+function isTopScore() {
+
+    const score = snake.score
+
+    for (let i in topScores) {
+        let topScore = topScores[i]
+        if (score > topScore.score) {
+            return +i
+        }
+    }
+    return -1
+}
+
+function restartGame() {
     gameOver = false
-    currentTime = defaultTime
-    gameWinScreen.style.display = 'none'
-    gameOverScreen.style.display = 'none'
+    scoreboard = false
+    currentClock = defaultClock
+    // gameWinScreen.style.display = 'none'
+    scoreboardScreen.style.display = 'none'
     canvas.style.filter = "none"
     divScoreElement.style.filter = "none"
     scoreElement.textContent = "000"
@@ -242,6 +285,11 @@ function hasColidedWithTail(axisX, axisY, tailPositions) {
 
 function handleKeyPressed(key) {
 
+    if (gameOver) {
+        handleScoreboard(key)
+        return
+    }
+
     const Keys = {
         ArrowUp() {
             tempViewDirection = "Up"
@@ -290,7 +338,9 @@ function generateFruit() {
     let axisX
     let axisY
 
-    const color = "#FF00FF"
+    const colors = ["#f1bbba", "#6f2da8", "#ff6666", "#e0b610", "#c6f50f", "#66cdaa", "#ffa500", "#f67453", "#f6c653"]
+
+    const color = colors[parseInt((Math.random() * colors.length))]
 
     axisX = parseInt((Math.random() * (maxX - 0)) / size) * size
     axisY = parseInt((Math.random() * (maxY - 0)) / size) * size
@@ -306,16 +356,26 @@ function generateFruit() {
 
 function generateSnake() {
 
-    const color = "#00FF00"
+    
+    const colors = [
+        {'bodyColor': '#D03411', "headColor": '#BD2F0F'},
+        {'bodyColor': '#229954', "headColor": '#1e864a'},
+        {'bodyColor': '#0D7AE7', "headColor": '#0C70D4'}
+    ]
+
+    const randomValue = Math.random()
+    const color = colors[parseInt(randomValue * colors.length)].bodyColor
+    const headColor = colors[parseInt(randomValue * colors.length)].headColor
+    
     const axisX = 0
     const axisY = 0
     const viewDirection = "Right"
 
-    return new Snake(axisX, axisY, viewDirection, color)
+    return new Snake(axisX, axisY, viewDirection, color, headColor)
 
 }
 
-function drawRectangle(axisX, axisY, color, shadowBlur) {
+function drawRectangle(axisX, axisY, color, shadowBlur, headColor) {
 
     ctx.shadowColor = color
     ctx.shadowBlur = shadowBlur
@@ -347,12 +407,13 @@ function drawSnake() {
 
     const {
         color,
+        headColor,
         axisX,
         axisY,
         tailPositions
     } = snake
 
-    drawRectangle(axisX, axisY, color)
+    drawRectangle(axisX, axisY, headColor)
 
     tailPositions.forEach((position, index) => {
         drawRectangle(position[0], position[1], color)
@@ -378,6 +439,65 @@ function updateScoreValue() {
     scoreElement.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
 }
 
+function showScoreboardScreen() {
+    topScoresCopy = getLocalStorage('topScores') || [...topScores]
+    scoreboardPosition = isTopScore()
+    if (scoreboardPosition != -1) {
+        updateScoreboard(topScoresCopy, { 'player': '___', 'score': snake.score })
+    }
+    gameOverScreen.style.display = 'none'
+    scoreboardScreen.style.display = 'flex'
+    while (topScoresElement.children.length > 1) {
+        removeChildren(topScoresElement)
+    }
+    for (const topScore of topScoresCopy) {
+        createScoreboardRowElement(topScore)
+    }
+    scoreboard = true
+    characterIndex = 0
+}
+
+function createScoreboardRowElement(row) {
+    const li = document.createElement('li')
+    const playerDiv = document.createElement('div')
+    const scoreDiv = document.createElement('div')
+    playerDiv.textContent = row.player
+    scoreDiv.textContent = row.score
+    li.classList.add('row')
+    li.appendChild(playerDiv)
+    li.appendChild(scoreDiv)
+    topScoresElement.appendChild(li)
+}
+
+function updateScoreboard(scoreboard, newScore) {
+    scoreboard.push(newScore)
+    scoreboard.sort((a, b) => a.score < b.score)
+    scoreboard.pop()
+}
+
+function handleScoreboard(key) {
+    if (!scoreboard) {
+        showScoreboardScreen()
+        return
+    }
+
+    if (key == 'Enter') {
+        setLocalStorage('topScores', topScoresCopy)
+        restartGame()
+    }
+
+    if (isTopScore() != -1 && characterIndex < 3) {
+        const playerScoreboardRow = [...topScoresElement.children][scoreboardPosition + 1]
+        let newKey = key.toUpperCase()
+        if (validKeys.includes(newKey)) {
+            let str = playerScoreboardRow.children[0].textContent.slice(0, characterIndex) + newKey + ('_'.repeat(3 - characterIndex - 1))
+            playerScoreboardRow.children[0].textContent = str
+            topScoresCopy[scoreboardPosition].player = str
+            characterIndex += 1
+        }
+    }
+}
+
 function playMoveAudio() {
     moveAudio.play()
 }
@@ -390,6 +510,10 @@ function playGameOverAudio() {
     gameOverAudio.play()
 }
 
-function playGameWinAudio() {
-    gameWinAudio.play()
+// function playGameWinAudio() {
+//     gameWinAudio.play()
+// }
+
+function removeChildren(element) {
+    element.removeChild(element.lastChild)
 }

@@ -5,24 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
     <link rel="stylesheet" type="text/css" href="index.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <div class="score">
-            <span>SCORE:</span>
-            <span class="score-value" id="score-value">000</span>
+            <span class="score-label">SCORE:</span>
+            <span class="score-value font-gradient" id="score-value">000</span>
         </div>
         <canvas id="canvas" height="450" width="450"></canvas>
         <div class="menu" id="gameover">
             <h1>GAME OVER</h1>
-            <h3 id="game-over-score">000</h3>
-            <button class="play-button">TRY AGAIN?</button>
+            <h3 id="game-over-score" class="game-over-score font-gradient">000</h3>
+            <span class="instructions">PRESS ANY BUTTON TO CONTINUE...</button>
         </div>
-        <div class="menu" id="gamewin">
+        <div class="menu" id="scoreboard">
+            <h1>SCOREBOARD</h1>
+            <ul id="list">
+                <li class="row">
+                    <div>PLAYER</div>
+                    <div>SCORE</div>
+                </li>
+            </ul>
+            <p>PRESS 'ENTER' TO FINISH</p>
+        </div>
+        <!-- <div class="menu" id="gamewin">
             <h1>CONGRATULATIONS!</h1>
             <h3 id="game-win-score">000</h3>
             <button class="play-button">PLAY AGAIN?</button>
-        </div>
+        </div> -->
     </div>
     <script src="./scripts/index.js" type="module"></script>
 </body>
