@@ -3,7 +3,7 @@ import Snake from "./classes/Snake.js"
 
 const size = 30
 const pointValue = 10
-const defaultClock = 200
+const defaultClock = 300
 
 let topScores = [
     {
