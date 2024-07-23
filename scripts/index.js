@@ -8,16 +8,36 @@ const defaultClock = 300
 let topScores = [
     {
         'player': 'BRY',
-        'score': 1000
+        'score': 2250
+    },
+    {
+        'player': 'BRY',
+        'score': 1800
     },
     {
         'player': 'AMD',
-        'score': 120
+        'score': 1240
+    },
+    {
+        'player': 'BRY',
+        'score': 980
     },
     {
         'player': 'LCS',
-        'score': 0
-    }
+        'score': 430
+    },
+    {
+        'player': 'LCS',
+        'score': 420
+    },
+    {
+        'player': 'FED',
+        'score': 100
+    },
+    {
+        'player': 'PLA',
+        'score': 10
+    },
 ]
 
 
@@ -234,6 +254,7 @@ function restartGame() {
     currentClock = defaultClock
     // gameWinScreen.style.display = 'none'
     scoreboardScreen.style.display = 'none'
+    
     canvas.style.filter = "none"
     divScoreElement.style.filter = "none"
     scoreElement.textContent = "000"
@@ -357,21 +378,15 @@ function generateFruit() {
 function generateSnake() {
 
     
-    const colors = [
-        {'bodyColor': '#D03411', "headColor": '#BD2F0F'},
-        {'bodyColor': '#229954', "headColor": '#1e864a'},
-        {'bodyColor': '#0D7AE7', "headColor": '#0C70D4'}
-    ]
-
-    const randomValue = Math.random()
-    const color = colors[parseInt(randomValue * colors.length)].bodyColor
-    const headColor = colors[parseInt(randomValue * colors.length)].headColor
+    
+    const bodyColor = '#229954'
+    const headColor = '#1e864a'
     
     const axisX = 0
     const axisY = 0
     const viewDirection = "Right"
 
-    return new Snake(axisX, axisY, viewDirection, color, headColor)
+    return new Snake(axisX, axisY, viewDirection, bodyColor, headColor)
 
 }
 
@@ -443,25 +458,28 @@ function showScoreboardScreen() {
     topScoresCopy = getLocalStorage('topScores') || [...topScores]
     scoreboardPosition = isTopScore()
     if (scoreboardPosition != -1) {
-        updateScoreboard(topScoresCopy, { 'player': '___', 'score': snake.score })
+        updateScoreboard(topScoresCopy, { 'player': '___', 'score': snake.score})
     }
     gameOverScreen.style.display = 'none'
     scoreboardScreen.style.display = 'flex'
     while (topScoresElement.children.length > 1) {
         removeChildren(topScoresElement)
     }
-    for (const topScore of topScoresCopy) {
-        createScoreboardRowElement(topScore)
+    for (const i in topScoresCopy) {
+        let topScore = topScoresCopy[i]
+        createScoreboardRowElement(topScore, true ? i == scoreboardPosition : false)
     }
     scoreboard = true
     characterIndex = 0
 }
 
-function createScoreboardRowElement(row) {
+function createScoreboardRowElement(row, isBlinking) {
     const li = document.createElement('li')
     const playerDiv = document.createElement('div')
     const scoreDiv = document.createElement('div')
     playerDiv.textContent = row.player
+    if (isBlinking)
+        playerDiv.classList.add('blink')
     scoreDiv.textContent = row.score
     li.classList.add('row')
     li.appendChild(playerDiv)
@@ -481,7 +499,7 @@ function handleScoreboard(key) {
         return
     }
 
-    if (key == 'Enter') {
+    if (key == 'Enter' && (isTopScore() == -1 || characterIndex == 3)) {
         setLocalStorage('topScores', topScoresCopy)
         restartGame()
     }

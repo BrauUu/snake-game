@@ -12,24 +12,24 @@
 <body>
     <div class="container">
         <div class="score">
-            <span class="score-label">SCORE:</span>
+            <span class="score-label highligth">SCORE:</span>
             <span class="score-value font-gradient" id="score-value">000</span>
         </div>
         <canvas id="canvas" height="450" width="450"></canvas>
         <div class="menu" id="gameover">
-            <h1>GAME OVER</h1>
-            <h3 id="game-over-score" class="game-over-score font-gradient">000</h3>
-            <span class="instructions">PRESS ANY BUTTON TO CONTINUE...</button>
+            <h1 class="highligth">GAME OVER</h1>
+            <h3 class="game-over-score font-gradient" id="game-over-score">>000</h3>
+            <span class="instructions">PRESS ANY KEY TO CONTINUE...</button>
         </div>
         <div class="menu" id="scoreboard">
-            <h1>SCOREBOARD</h1>
+            <h1 class="highligth">SCOREBOARD</h1>
             <ul id="list">
                 <li class="row">
                     <div>PLAYER</div>
                     <div>SCORE</div>
                 </li>
             </ul>
-            <p>PRESS 'ENTER' TO FINISH</p>
+            <p>PRESS <span class="highligth-soft">'ENTER'</span> TO FINISH</p>
         </div>
         <!-- <div class="menu" id="gamewin">
             <h1>CONGRATULATIONS!</h1>
