@@ -501,6 +501,7 @@ function handleScoreboard(key) {
 
     if (key == 'Enter' && (isTopScore() == -1 || characterIndex == 3)) {
         setLocalStorage('topScores', topScoresCopy)
+        topScores = [...topScoresCopy]
         restartGame()
     }
 
