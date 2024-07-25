@@ -40,15 +40,17 @@ let topScores = [
     },
 ]
 
-
+let snake
+let fruit
 let gameOver = false
 let scoreboard = false
-let scoreboardPosition
 let tempViewDirection
 let currentClock = defaultClock
 let checkpoint = 50
 let characterIndex = 0
 let topScoresCopy
+let eventOnProgress = false
+let intervalId
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
@@ -56,11 +58,7 @@ const ctx = canvas.getContext("2d");
 const gameOverScreen = document.querySelector("#gameover");
 const scoreboardScreen = document.querySelector("#scoreboard");
 const topScoresElement = document.querySelector("#scoreboard > #list");
-// const gameWinScreen = document.querySelector("#gamewin");
-
-const gameOverScore = document.querySelector("#game-over-score");
-// const gameWinScore = document.querySelector("#game-win-score");
-
+const gameOverScoreElement = document.querySelector("#game-over-score");
 const scoreElement = document.querySelector("#score-value");
 const divScoreElement = document.querySelector(".score");
 
@@ -71,7 +69,44 @@ const Moves = {
     'Left': { moveX: -1, moveY: 0 },
 }
 
-const validKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+const validKeys = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9'
+]
 
 const Walls = {
     'axisX': {
@@ -84,18 +119,10 @@ const Walls = {
     }
 }
 
-// const maxScore = (canvas.width / size * canvas.height / size) * pointValue - pointValue
-
-let eventOnProgress = false
-let intervalId
 
 const moveAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/move.mp3");
 const eatAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/food.mp3");
 const gameOverAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/gameover.mp3");
-// const gameWinAudio = new Audio("https://brauuu.github.io/snake-game/assets/audios/gamewin.mp3");
-
-let snake
-let fruit
 
 loopGame()
 
@@ -128,10 +155,6 @@ function createInterval() {
         cleanCanvas()
         drawGrid()
         drawSnake()
-        // if (hasGameWin()) {
-        //     handleGameWin()
-        //     return
-        // }
         drawFruit()
     }, currentClock)
 }
@@ -170,7 +193,6 @@ function handleMovement(moveX, moveY) {
     handleCollision()
 
     tailPositions.pop()
-
 }
 
 function handleCollision() {
@@ -187,7 +209,6 @@ function handleCollision() {
         hasGotFruit()
         fruit = generateFruit()
     }
-
 }
 
 function handleSpeed() {
@@ -200,23 +221,6 @@ function handleSpeed() {
     }
 }
 
-// function hasGameWin() {
-//     return snake.score >= maxScore
-// }
-
-// function handleGameWin() {
-
-//     const score = snake.score
-
-//     gameWinScreen.style.display = 'flex'
-//     canvas.style.filter = "blur(2px)"
-//     divScoreElement.style.filter = "blur(2px)"
-//     gameWinScore.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
-
-//     clearInterval(intervalId)
-//     playGameWinAudio()
-// }
-
 function hasGameOver() {
     return gameOver
 }
@@ -228,11 +232,10 @@ function handleGameOver() {
     gameOverScreen.style.display = 'flex'
     canvas.style.filter = "blur(2px)"
     divScoreElement.style.filter = "blur(2px)"
-    gameOverScore.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
+    gameOverScoreElement.textContent = ("0".repeat(3 - (score.toString().length))) + score.toString()
 
     clearInterval(intervalId)
     playGameOverAudio()
-
 }
 
 function isTopScore() {
@@ -252,9 +255,8 @@ function restartGame() {
     gameOver = false
     scoreboard = false
     currentClock = defaultClock
-    // gameWinScreen.style.display = 'none'
     scoreboardScreen.style.display = 'none'
-    
+
     canvas.style.filter = "none"
     divScoreElement.style.filter = "none"
     scoreElement.textContent = "000"
@@ -291,7 +293,6 @@ function hasColidedWithFruit(axisX, axisY) {
     }
 
     return false
-
 }
 
 function hasColidedWithTail(axisX, axisY, tailPositions) {
@@ -331,7 +332,6 @@ function handleKeyPressed(key) {
     if (direction) {
         direction()
     }
-
 }
 
 function updateViewDirection(direction) {
@@ -372,26 +372,21 @@ function generateFruit() {
     } while (tailPositions.findIndex(value => ((value[0] === axisX && value[1] === axisY) || (value[1] === axisX && value[0] === axisY))) != -1 || (snake.axisX === axisX && snake.axisY === axisY));
 
     return new Fruit(axisX, axisY, color)
-
 }
 
 function generateSnake() {
 
-    
-    
     const bodyColor = '#229954'
     const headColor = '#1e864a'
-    
+
     const axisX = 0
     const axisY = 0
     const viewDirection = "Right"
 
     return new Snake(axisX, axisY, viewDirection, bodyColor, headColor)
-
 }
 
-function drawRectangle(axisX, axisY, color, shadowBlur, headColor) {
-
+function drawRectangle(axisX, axisY, color, shadowBlur) {
     ctx.shadowColor = color
     ctx.shadowBlur = shadowBlur
     ctx.fillStyle = color
@@ -410,7 +405,6 @@ function drawGrid() {
         ctx.lineTo(i, 0)
         ctx.lineTo(i, canvas.height)
         ctx.stroke()
-
         ctx.beginPath()
         ctx.lineTo(0, i)
         ctx.lineTo(canvas.height, i)
@@ -433,7 +427,6 @@ function drawSnake() {
     tailPositions.forEach((position, index) => {
         drawRectangle(position[0], position[1], color)
     })
-
 }
 
 function drawFruit() {
@@ -445,7 +438,6 @@ function drawFruit() {
     } = fruit
 
     drawRectangle(axisX, axisY, color, 10)
-
 }
 
 function updateScoreValue() {
@@ -456,9 +448,9 @@ function updateScoreValue() {
 
 function showScoreboardScreen() {
     topScoresCopy = getLocalStorage('topScores') || [...topScores]
-    scoreboardPosition = isTopScore()
+    let scoreboardPosition = isTopScore()
     if (scoreboardPosition != -1) {
-        updateScoreboard(topScoresCopy, { 'player': '___', 'score': snake.score})
+        updateScoreboard(topScoresCopy, { 'player': '___', 'score': snake.score })
     }
     gameOverScreen.style.display = 'none'
     scoreboardScreen.style.display = 'flex'
@@ -504,8 +496,8 @@ function handleScoreboard(key) {
         topScores = [...topScoresCopy]
         restartGame()
     }
-
-    if (isTopScore() != -1 && characterIndex < 3) {
+    let scoreboardPosition = isTopScore()
+    if (scoreboardPosition != -1 && characterIndex < 3) {
         const playerScoreboardRow = [...topScoresElement.children][scoreboardPosition + 1]
         let newKey = key.toUpperCase()
         if (validKeys.includes(newKey)) {
@@ -528,10 +520,6 @@ function playEatAudio() {
 function playGameOverAudio() {
     gameOverAudio.play()
 }
-
-// function playGameWinAudio() {
-//     gameWinAudio.play()
-// }
 
 function removeChildren(element) {
     element.removeChild(element.lastChild)
