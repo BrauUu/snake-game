@@ -8,19 +8,19 @@ const defaultClock = 300
 let topScores = [
     {
         'player': 'BRY',
-        'score': 2250
+        'score': 1210
     },
     {
         'player': 'BRY',
-        'score': 1800
+        'score': 1100
     },
     {
         'player': 'AMD',
-        'score': 1240
+        'score': 810
     },
     {
         'player': 'BRY',
-        'score': 980
+        'score': 800
     },
     {
         'player': 'LCS',
@@ -61,6 +61,7 @@ const topScoresElement = document.querySelector("#scoreboard > #list");
 const gameOverScoreElement = document.querySelector("#game-over-score");
 const scoreElement = document.querySelector("#score-value");
 const divScoreElement = document.querySelector(".score");
+const keyboardInvoker = document.querySelector("#keyboardInvoker");
 
 const Moves = {
     'Up': { moveX: 0, moveY: -1 },
@@ -141,6 +142,7 @@ function loopGame() {
 }
 
 function createInterval() {
+    tempViewDirection = 'Right'
     cleanCanvas()
     drawGrid()
     drawSnake()
@@ -170,6 +172,41 @@ window.addEventListener('keydown', (event) => {
     eventOnProgress = false
     event.preventDefault()
 })
+
+let startX = 0;
+let startY = 0;
+
+document.addEventListener("touchstart", (event) => {
+    if(hasGameOver()){
+        if(screen.width <= 768){
+            keyboardInvoker.focus()
+        }
+        handleScoreboard()
+        event.preventDefault();
+    }
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+}, { passive: false });
+
+document.addEventListener("touchmove", (event) => {
+    if(!hasGameOver())
+        event.preventDefault();
+}, { passive: false });
+
+document.addEventListener("touchend", (event) => {
+    if(!hasGameOver())
+        event.preventDefault();
+    let endX = event.changedTouches[0].clientX;
+    let endY = event.changedTouches[0].clientY;
+    let diffX = endX - startX;
+    let diffY = endY - startY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        tempViewDirection = diffX > 0 ? "Right" : "Left"
+    } else {
+        tempViewDirection = diffY > 0 ? "Down" : "Up"
+    }
+}, {passive: false});
 
 function move() {
 
